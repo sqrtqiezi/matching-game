@@ -44,7 +44,7 @@ Game.prototype = {
     renderCards: function renderCards() {
         html = [];
         this.cards.forEach(function (item) {
-            html.push(`<li class="card show" data-card="${item}">
+            html.push(`<li class="card" data-card="${item}">
                 <i class="fa fa-${item}"></i>
             </li>`);
         });
