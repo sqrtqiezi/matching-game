@@ -79,7 +79,13 @@ Game.prototype = {
                     self.steps = 0;
                     self.renderStars();
                     if(self.moves <= 0 && self.count !== self.cards.length) {
-                        alert('Game Over!');
+                        $('.ui.failed.modal').modal({
+                            closable: false,
+                            onApprove : function() {
+                                self.restart();
+                            }
+                        })
+                        .modal('show');
                     }
                 }
             });
@@ -97,7 +103,13 @@ Game.prototype = {
                 });
                 self.matchedCount += 2;
                 if (self.matchedCount === self.cards.length) {
-                    alert('Winner! Winner! Chiken Dinner!');
+                    $('.ui.success.modal').modal({
+                        closable: false,
+                        onApprove : function() {
+                            self.restart();
+                        }
+                    })
+                    .modal('show');
                 }
             } else {
                 //TODO: 添加猜测错误时的样式 
@@ -129,4 +141,5 @@ Game.prototype = {
     }
 };
 
-new Game().start();
+var game = new Game();
+game.start();
