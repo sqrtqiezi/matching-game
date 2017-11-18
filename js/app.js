@@ -1,3 +1,8 @@
+// 访问链接末尾处加上 ?debug 打开 DEBUG 开关，会有如下功能：
+// 1、花色直接显示在牌面上；
+// 2、声明全局变量 game ，暴露运行状态。
+var DEBUG = new URL(window.location.href).searchParams.has('debug');
+
 var Game = function () {
     this.cards = ['diamond', 'paper-plane-o', 'anchor', 'bolt', 'cube', 'leaf', 'bicycle', 'bomb',
         'diamond', 'paper-plane-o', 'anchor', 'bolt', 'cube', 'leaf', 'bicycle', 'bomb'
@@ -44,9 +49,16 @@ Game.prototype = {
     renderCards: function renderCards() {
         html = [];
         this.cards.forEach(function (item) {
-            html.push(`<li class="card" data-card="${item}">
+            if (DEBUG) {
+                var $card = `<li class="card show" data-card="${item}">
                 <i class="fa fa-${item}"></i>
-            </li>`);
+            </li>`;
+            } else {
+                var $card = `<li class="card" data-card="${item}">
+                <i class="fa fa-${item}"></i>
+            </li>`;
+            }
+            html.push($card);
         });
         document.getElementsByClassName('deck')[0].innerHTML = html.join('');
         this.$cards = document.getElementsByClassName('card');
@@ -78,14 +90,14 @@ Game.prototype = {
                     self.moves--;
                     self.steps = 0;
                     self.renderStars();
-                    if(self.moves <= 0 && self.count !== self.cards.length) {
+                    if (self.moves <= 0 && self.count !== self.cards.length) {
                         $('.ui.failed.modal').modal({
-                            closable: false,
-                            onApprove : function() {
-                                self.restart();
-                            }
-                        })
-                        .modal('show');
+                                closable: false,
+                                onApprove: function () {
+                                    self.restart();
+                                }
+                            })
+                            .modal('show');
                     }
                 }
             });
@@ -104,12 +116,12 @@ Game.prototype = {
                 self.matchedCount += 2;
                 if (self.matchedCount === self.cards.length) {
                     $('.ui.success.modal').modal({
-                        closable: false,
-                        onApprove : function() {
-                            self.restart();
-                        }
-                    })
-                    .modal('show');
+                            closable: false,
+                            onApprove: function () {
+                                self.restart();
+                            }
+                        })
+                        .modal('show');
                 }
             } else {
                 //TODO: 添加猜测错误时的样式 
@@ -141,5 +153,9 @@ Game.prototype = {
     }
 };
 
-var game = new Game();
-game.start();
+if (DEBUG) {
+    var game = new Game();
+    game.start();
+} else {
+    new Game().start();
+}
