@@ -57,7 +57,7 @@ Game.prototype = {
    */
   renderTimer: function renderTimer() {
     var self = this;
-    Array.prototype.forEach.call(document.getElementsByClassName('timer'),function(item) {
+    [].forEach.call(document.getElementsByClassName('timer'),function(item) {
       item.innerHTML = self.timer.getInterval();
     });
     window.requestAnimationFrame(this.renderTimer.bind(this));
@@ -104,7 +104,6 @@ Game.prototype = {
     var self = this;
 
     [].forEach.call(this.$cards, function (item, index) {
-      //TODO: 添加翻牌动效
       item.addEventListener('click', function () {
         if (self.waiting ||
           self.checkCards.length === 2 ||
@@ -112,14 +111,13 @@ Game.prototype = {
         ) {
           return;
         }
-
-        this.classList.add('open');
-        this.classList.add('show');
         self.checkCards.push(self.$cards[index]);
+        self.open(this);
 
         // 翻动两张卡片为一步
         if (self.checkCards.length === 2) {
-          self.check();
+          setTimeout(self.checkGame.bind(self), 1200);
+
         } else {
           self.moves++;
         }
@@ -151,39 +149,29 @@ Game.prototype = {
   },
 
   /**
-   * 检查游戏状态，判定游戏是否结束。
+   * 检查翻牌是否匹配；判定游戏是否结束。
    */
-  check: function check() {
+  checkGame: function checkGame() {
     var self = this;
     self.waiting = true;
 
-    setTimeout(function () {
-      if (self.checkCards[0].dataset.card === self.checkCards[1].dataset.card) {
-        self.checkCards.forEach(function (item) {
-          item.classList.add('match');
-        });
-        self.matchedCount += 2;
+    if (self.checkCards[0].dataset.card === self.checkCards[1].dataset.card) {
+      self.matched();
 
-        // 游戏获胜
-        if (self.matchedCount === self.cards.length) {
-          self.timer.end();
-          $('.ui.success.modal').modal({
-            closable: false,
-            onApprove: function () {
-              self.restart();
-            }
-          }).modal('show');
-        }
-      } else {
-        //TODO: 添加猜测错误时的样式
-        self.checkCards.forEach(function (item) {
-          item.classList.remove('open');
-          item.classList.remove('show');
-        });
+      // 游戏获胜
+      if (self.matchedCount === self.cards.length) {
+        self.timer.end();
+        $('.ui.success.modal').modal({
+          closable: false,
+          onApprove: function () {
+            self.restart();
+          }
+        }).modal('show');
       }
-      self.checkCards = [];
-      self.waiting = false;
-    }, 800);
+    } else {
+      self.notMatch();
+    }
+    self.waiting = false;
   },
 
   /**
@@ -207,6 +195,88 @@ Game.prototype = {
       this.cards[currentIndex] = this.cards[randomIndex];
       this.cards[randomIndex] = temporaryValue;
     }
+  },
+
+  /**
+   * Card 匹配动效
+   */
+  matched: function matched() {
+    this.checkCards.forEach(function (card) {
+      card.classList.add('rubberBand');
+      card.classList.add('animated');
+      console.log(card);
+
+      card.addEventListener('animationend', function (e) {
+        // 只调用一次
+        e.target.removeEventListener(e.type, arguments.callee);
+
+        card.classList.remove('rubberBand');
+        card.classList.remove('animated');
+      })
+      card.classList.add('match');
+    });
+
+    this.matchedCount += 2;
+    this.checkCards = [];
+  },
+
+  /**
+   * Card 未匹配动效
+   */
+  notMatch: function notMatched() {
+    var self = this;
+
+    this.checkCards.forEach(function (card) {
+      card.classList.add('swing');
+      card.classList.add('animated');
+
+      card.addEventListener('animationend', function (e) {
+        // 只调用一次
+        e.target.removeEventListener(e.type, arguments.callee);
+
+        card.classList.remove('swing');
+        card.classList.remove('animated');
+        self.close(card);
+      })
+      card.classList.add('not-match');
+    });
+    this.checkCards = [];
+  },
+
+  /**
+   * 掀开 Card
+   */
+  open: function open(card) {
+    card.classList.add('flipInY');
+    card.classList.add('animated');
+    card.addEventListener('animationend', function (e) {
+      // 只调用一次
+      e.target.removeEventListener(e.type, arguments.callee);
+
+      card.classList.remove('flipInY');
+      card.classList.remove('animated');
+    });
+    card.classList.add('open');
+    card.classList.add('show');
+  },
+
+  /**
+   * 盖上 Card
+   */
+  close: function close(card) {
+    card.classList.add('flipOutY');
+    card.classList.add('animated');
+    card.addEventListener('animationend', function (e) {
+      // 只调用一次
+      e.target.removeEventListener(e.type, arguments.callee);
+
+      card.classList.remove('flipOutY');
+      card.classList.remove('animated');
+
+      card.classList.remove('open');
+      card.classList.remove('show');
+      card.classList.remove('not-match');
+    });
   }
 };
 
